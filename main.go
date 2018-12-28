@@ -1,13 +1,12 @@
 package main
 
 import (
-	"log"
-	"unsafe"
-
-	"github.com/xlab/closer"
-	"github.com/xlab/pocketsphinx-go/sphinx"
 	"github.com/xlab/portaudio-go/portaudio"
 	"flag"
+	"log"
+	"github.com/xlab/closer"
+	"github.com/xlab/pocketsphinx-go/sphinx"
+	"unsafe"
 )
 
 const (
@@ -25,9 +24,14 @@ var (
 	keyPhrase string
 	debugLevel int
 	logFile string
-	//nfft string
 	nfft int
 )
+
+/*
+./morty -hmm ~/zero_ru_cont_8k_v3/zero_ru.cd_cont_4000 -dict ./dict/vocabular.dict -jsgf ./dict/grammar.jsgf -lf /dev/stdout -nfft 2048
+pocketsphinx_continuous -hmm ~/zero_ru_cont_8k_v3/zero_ru.cd_cont_4000 -jsgf ./dict/grammar.jsgf -dict ./dict/vocabular.dict -inmic yes -adcdev plughw:1
+
+ */
 
 func init() {
 	flag.Float64Var(&sampleRate, "sr", 48000, "sample rate")
