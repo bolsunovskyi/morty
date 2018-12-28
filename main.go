@@ -21,16 +21,24 @@ var (
 	hmm string
 	dict string
 	lm string
+	jsgf string
+	keyPhrase string
+	debugLevel int
+	logFile string
 )
 
 func init() {
 	flag.StringVar(&hmm, "hmm", "", "directory containing acoustic model files")
 	flag.StringVar(&dict, "dict", "", "main pronunciation dictionary (lexicon) input file")
 	flag.StringVar(&lm, "lm", "", "word trigram language model input file")
+	flag.StringVar(&jsgf, "jsgf", "", "grammar file")
+	flag.StringVar(&keyPhrase, "keyphrase", "", "keyphrase")
+	flag.StringVar(&logFile, "lf", "/dev/null", "log file")
+	flag.IntVar(&debugLevel, "dl", 0, "debug level")
 	flag.Parse()
 
-	if hmm == "" || dict == "" || lm == "" {
-		log.Fatalln("hmm, lm and dict must be specified")
+	if hmm == "" || dict == "" || (lm == "" && jsgf == "") {
+		log.Fatalln("hmm, dict and lm or jsgf must be specified")
 	}
 }
 
@@ -56,11 +64,22 @@ func appRun() {
 	cfg := sphinx.NewConfig(
 		sphinx.HMMDirOption(hmm),
 		sphinx.DictFileOption(dict),
-		sphinx.LMFileOption(lm),
 		sphinx.SampleRateOption(sampleRate),
-		sphinx.DebugOption(0),
-		sphinx.LogFileOption("/dev/null"),
+		sphinx.DebugOption(debugLevel),
+		sphinx.LogFileOption(logFile),
 	)
+
+	if lm != "" {
+		sphinx.LMFileOption(lm)(cfg)
+	}
+
+	if jsgf != "" {
+		sphinx.UserOption("-jsgf", sphinx.String(jsgf))(cfg)
+	}
+
+	if keyPhrase != "" {
+		sphinx.KeyphraseOption(keyPhrase)
+	}
 
 	log.Println("Loading CMU PhocketSphinx.")
 	log.Println("This may take a while depending on the size of your model.")
