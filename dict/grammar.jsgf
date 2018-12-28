@@ -1,0 +1,10 @@
+#JSGF V1.0;
+
+grammar morty;
+
+<greeting> = (морти);
+<action> = (включи|выключи) {action};
+<target> = (свет) {target};
+<location> = (кухне|спальне|зале) {location};
+<expression> = <action> <target> <location>;
+public <query> = <greeting> <expression>;
