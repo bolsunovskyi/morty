@@ -25,7 +25,8 @@ var (
 	keyPhrase string
 	debugLevel int
 	logFile string
-	nfft string
+	//nfft string
+	nfft int
 )
 
 func init() {
@@ -37,7 +38,8 @@ func init() {
 	flag.StringVar(&keyPhrase, "keyphrase", "", "keyphrase")
 	flag.StringVar(&logFile, "lf", "/dev/null", "log file")
 	flag.IntVar(&debugLevel, "dl", 0, "debug level")
-	flag.StringVar(&nfft, "nfft", "", "nfft")
+	//flag.StringVar(&nfft, "nfft", "", "nfft")
+	flag.IntVar(&nfft, "nfft", 0, "nfft")
 	flag.Parse()
 
 	if hmm == "" || dict == "" || (lm == "" && jsgf == "") {
@@ -83,8 +85,9 @@ func appRun() {
 		sphinx.KeyphraseOption(keyPhrase)
 	}
 
-	if nfft != "" {
-		sphinx.UserOption("-nfft", sphinx.String(nfft))(cfg)
+	if nfft != 0 {
+		//sphinx.UserOption("-nfft", sphinx.String(nfft))(cfg)
+		sphinx.UserOption("-nfft", nfft)(cfg)
 	}
 
 	log.Println("Loading CMU PhocketSphinx.")
