@@ -12,12 +12,12 @@ import (
 
 const (
 	samplesPerChannel = 512
-	sampleRate        = 16000
 	channels          = 1
 	sampleFormat      = portaudio.PaInt16
 )
 
 var (
+	sampleRate float64
 	hmm string
 	dict string
 	lm string
@@ -25,9 +25,11 @@ var (
 	keyPhrase string
 	debugLevel int
 	logFile string
+	nfft string
 )
 
 func init() {
+	flag.Float64Var(&sampleRate, "sr", 48000, "sample rate")
 	flag.StringVar(&hmm, "hmm", "", "directory containing acoustic model files")
 	flag.StringVar(&dict, "dict", "", "main pronunciation dictionary (lexicon) input file")
 	flag.StringVar(&lm, "lm", "", "word trigram language model input file")
@@ -35,6 +37,7 @@ func init() {
 	flag.StringVar(&keyPhrase, "keyphrase", "", "keyphrase")
 	flag.StringVar(&logFile, "lf", "/dev/null", "log file")
 	flag.IntVar(&debugLevel, "dl", 0, "debug level")
+	flag.StringVar(&nfft, "nfft", "", "nfft")
 	flag.Parse()
 
 	if hmm == "" || dict == "" || (lm == "" && jsgf == "") {
@@ -60,11 +63,10 @@ func appRun() {
 		}
 	})
 
-	// Init CMUSphinx
 	cfg := sphinx.NewConfig(
 		sphinx.HMMDirOption(hmm),
 		sphinx.DictFileOption(dict),
-		sphinx.SampleRateOption(sampleRate),
+		sphinx.SampleRateOption(float32(sampleRate)),
 		sphinx.DebugOption(debugLevel),
 		sphinx.LogFileOption(logFile),
 	)
@@ -79,6 +81,10 @@ func appRun() {
 
 	if keyPhrase != "" {
 		sphinx.KeyphraseOption(keyPhrase)
+	}
+
+	if nfft != "" {
+		sphinx.UserOption("-nfft", sphinx.String(nfft))(cfg)
 	}
 
 	log.Println("Loading CMU PhocketSphinx.")
