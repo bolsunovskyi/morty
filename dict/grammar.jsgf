@@ -2,9 +2,10 @@
 
 grammar morty;
 
-<greeting> = (морти);
-<action> = (включи|выключи) {action};
-<target> = (свет) {target};
-<location> = (кухне|спальне|зале) {location};
-<expression> = <action> <target> <location>;
-public <query> = <greeting> <expression>;
+<greeting> = (морти|окей морти)
+<action> = (включи|выключи|понизь яркость|повысь яркость|увеличь яркость|уменьшь яркость|скажи|подскажи)
+<target> = (свет|лампа|лампу|кровать|зеркало|зеркале|погоду|погода|температуру|температура)
+<location> = (кухне|спальне|зале|киеве|полтаве)
+<expression> = <action> <target> [<location>];
+public <query> = <greeting> | <expression>;
+

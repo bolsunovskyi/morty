@@ -1,12 +1,13 @@
 package main
 
 import (
-	"github.com/xlab/portaudio-go/portaudio"
 	"flag"
 	"log"
+	"unsafe"
+
 	"github.com/xlab/closer"
 	"github.com/xlab/pocketsphinx-go/sphinx"
-	"unsafe"
+	"github.com/xlab/portaudio-go/portaudio"
 )
 
 const (
@@ -17,21 +18,21 @@ const (
 
 var (
 	sampleRate float64
-	hmm string
-	dict string
-	lm string
-	jsgf string
-	keyPhrase string
+	hmm        string
+	dict       string
+	lm         string
+	jsgf       string
+	keyPhrase  string
 	debugLevel int
-	logFile string
-	nfft int
+	logFile    string
+	nfft       int
 )
 
 /*
 ./morty -hmm ~/zero_ru_cont_8k_v3/zero_ru.cd_cont_4000 -dict ./dict/vocabular.dict -jsgf ./dict/grammar.jsgf -lf /dev/stdout -nfft 2048
 pocketsphinx_continuous -hmm ~/zero_ru_cont_8k_v3/zero_ru.cd_cont_4000 -jsgf ./dict/grammar.jsgf -dict ./dict/vocabular.dict -inmic yes -adcdev plughw:1
 
- */
+*/
 
 func init() {
 	flag.Float64Var(&sampleRate, "sr", 48000, "sample rate")
@@ -42,7 +43,6 @@ func init() {
 	flag.StringVar(&keyPhrase, "keyphrase", "", "keyphrase")
 	flag.StringVar(&logFile, "lf", "/dev/null", "log file")
 	flag.IntVar(&debugLevel, "dl", 0, "debug level")
-	//flag.StringVar(&nfft, "nfft", "", "nfft")
 	flag.IntVar(&nfft, "nfft", 0, "nfft")
 	flag.Parse()
 
@@ -90,7 +90,6 @@ func appRun() {
 	}
 
 	if nfft != 0 {
-		//sphinx.UserOption("-nfft", sphinx.String(nfft))(cfg)
 		sphinx.UserOption("-nfft", nfft)(cfg)
 	}
 
