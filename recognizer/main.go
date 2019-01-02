@@ -3,11 +3,14 @@ package main
 import (
 	"flag"
 	"log"
+	"os"
+	"strings"
 	"unsafe"
 
 	"github.com/xlab/closer"
 	"github.com/xlab/pocketsphinx-go/sphinx"
 	"github.com/xlab/portaudio-go/portaudio"
+	"gopkg.in/yaml.v2"
 )
 
 const (
@@ -16,16 +19,63 @@ const (
 	sampleFormat      = portaudio.PaInt16
 )
 
+type Config struct {
+	Dict struct {
+		Greeting []string          `yaml:"greeting"`
+		Action   map[string]string `yaml:"action"`
+		Target   map[string]string `yaml:"target"`
+		Location map[string]string `yaml:"location"`
+	} `yaml:"dict"`
+}
+
+func (c Config) getExpressionKeys() (res []string) {
+	for k := range c.Dict.Location {
+		res = append(res, k)
+	}
+
+	for k := range c.Dict.Action {
+		res = append(res, k)
+	}
+
+	for k := range c.Dict.Target {
+		res = append(res, k)
+	}
+
+	return
+}
+
+func (c Config) getExpressionMap() (res map[string]string) {
+	res = make(map[string]string)
+
+	for k, v := range c.Dict.Location {
+		res[k] = v
+	}
+
+	for k, v := range c.Dict.Action {
+		res[k] = v
+	}
+
+	for k, v := range c.Dict.Target {
+		res[k] = v
+	}
+
+	return
+}
+
 var (
-	sampleRate float64
-	hmm        string
-	dict       string
-	lm         string
-	jsgf       string
-	keyPhrase  string
-	debugLevel int
-	logFile    string
-	nfft       int
+	sampleRate          float64
+	hmm                 string
+	dict                string
+	lm                  string
+	jsgf                string
+	keyPhrase           string
+	debugLevel          int
+	logFile             string
+	nfft                int
+	assistantConfigPath string
+	conf                Config
+	listenExpression    bool
+	expressionMap       map[string]string
 )
 
 /*
@@ -44,18 +94,27 @@ func init() {
 	flag.StringVar(&logFile, "lf", "/dev/null", "log file")
 	flag.IntVar(&debugLevel, "dl", 0, "debug level")
 	flag.IntVar(&nfft, "nfft", 0, "nfft")
+	flag.StringVar(&assistantConfigPath, "ac", "../config/config.yaml", "assistant config path")
 	flag.Parse()
 
 	if hmm == "" || dict == "" || (lm == "" && jsgf == "") {
 		log.Fatalln("hmm, dict and lm or jsgf must be specified")
 	}
+
+	fp, err := os.Open(assistantConfigPath)
+	if err != nil {
+		log.Fatalln(err)
+	}
+
+	if err := yaml.NewDecoder(fp).Decode(&conf); err != nil {
+		log.Fatalln(err)
+	}
+	fp.Close()
+
+	expressionMap = conf.getExpressionMap()
 }
 
 func main() {
-	appRun()
-}
-
-func appRun() {
 	defer closer.Close()
 	closer.Bind(func() {
 		log.Println("Bye!")
@@ -139,8 +198,6 @@ type Listener struct {
 	dec        *sphinx.Decoder
 }
 
-// paCallback: for simplicity reasons we process raw audio with sphinx in the this stream callback,
-// never do that for any serious applications, use a buffered channel instead.
 func (l *Listener) paCallback(input unsafe.Pointer, _ unsafe.Pointer, sampleCount uint,
 	_ *portaudio.StreamCallbackTimeInfo, _ portaudio.StreamCallbackFlags, _ unsafe.Pointer) int32 {
 
@@ -150,9 +207,7 @@ func (l *Listener) paCallback(input unsafe.Pointer, _ unsafe.Pointer, sampleCoun
 	)
 
 	in := (*(*[1 << 24]int16)(input))[:int(sampleCount)*channels]
-	// ProcessRaw with disabled search because callback needs to be relatime
 	_, ok := l.dec.ProcessRaw(in, true, false)
-	// log.Printf("processed: %d frames, ok: %v", frames, ok)
 	if !ok {
 		return statusAbort
 	}
@@ -163,7 +218,6 @@ func (l *Listener) paCallback(input unsafe.Pointer, _ unsafe.Pointer, sampleCoun
 			log.Println("Listening..")
 		}
 	} else if l.uttStarted {
-		// speech -> silence transition, time to start new utterance
 		l.dec.EndUtt()
 		l.uttStarted = false
 		l.report() // report results
@@ -178,8 +232,29 @@ func (l *Listener) report() {
 	hyp, _ := l.dec.Hypothesis()
 	if len(hyp) > 0 {
 		log.Printf("    > hypothesis: %s", hyp)
+		if !listenExpression {
+			for _, gr := range conf.Dict.Greeting {
+				if gr == hyp {
+					listenExpression = true
+					log.Println("greeting active")
+				}
+			}
+		} else {
+			var result []string
+			words := strings.Split(hyp, " ")
+			for _, w := range words {
+				if v, ok := expressionMap[w]; ok {
+					result = append(result, v)
+				}
+			}
+			message := strings.Join(result, "_")
+			log.Println("message", message)
+			listenExpression = false
+		}
+
 		return
 	}
+
 	log.Println("ah, nothing")
 }
 

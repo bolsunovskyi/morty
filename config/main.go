@@ -12,14 +12,12 @@ import (
 )
 
 type Config struct {
-	Morty struct {
-		Dict struct {
-			Greeting []string          `yaml:"greeting"`
-			Action   map[string]string `yaml:"action"`
-			Target   map[string]string `yaml:"target"`
-			Location map[string]string `yaml:"location"`
-		} `yaml:"dict"`
-	}
+	Dict struct {
+		Greeting []string          `yaml:"greeting"`
+		Action   map[string]string `yaml:"action"`
+		Target   map[string]string `yaml:"target"`
+		Location map[string]string `yaml:"location"`
+	} `yaml:"dict"`
 }
 
 var (
@@ -78,10 +76,10 @@ func main() {
 		log.Fatalln(err)
 	}
 
-	voc.WriteString(strings.Join(conf.Morty.Dict.Greeting, "\n") + "\n")
-	voc.WriteString(strings.Join(mapKeys(conf.Morty.Dict.Location), "\n") + "\n")
-	voc.WriteString(strings.Join(mapKeys(conf.Morty.Dict.Target), "\n") + "\n")
-	voc.WriteString(strings.Join(mapKeys(conf.Morty.Dict.Action), "\n"))
+	voc.WriteString(strings.Join(conf.Dict.Greeting, "\n") + "\n")
+	voc.WriteString(strings.Join(mapKeys(conf.Dict.Location), "\n") + "\n")
+	voc.WriteString(strings.Join(mapKeys(conf.Dict.Target), "\n") + "\n")
+	voc.WriteString(strings.Join(mapKeys(conf.Dict.Action), "\n"))
 	if err := voc.Close(); err != nil {
 		log.Fatalln(err)
 	}
@@ -92,10 +90,10 @@ func main() {
 	}
 
 	gram.WriteString(grammarHeader)
-	gram.WriteString(fmt.Sprintf("<greeting> = (%s)\n", strings.Join(conf.Morty.Dict.Greeting, "|")))
-	gram.WriteString(fmt.Sprintf("<action> = (%s)\n", strings.Join(mapKeys(conf.Morty.Dict.Action), "|")))
-	gram.WriteString(fmt.Sprintf("<target> = (%s)\n", strings.Join(mapKeys(conf.Morty.Dict.Target), "|")))
-	gram.WriteString(fmt.Sprintf("<location> = (%s)\n", strings.Join(mapKeys(conf.Morty.Dict.Location), "|")))
+	gram.WriteString(fmt.Sprintf("<greeting> = (%s)\n", strings.Join(conf.Dict.Greeting, "|")))
+	gram.WriteString(fmt.Sprintf("<action> = (%s)\n", strings.Join(mapKeys(conf.Dict.Action), "|")))
+	gram.WriteString(fmt.Sprintf("<target> = (%s)\n", strings.Join(mapKeys(conf.Dict.Target), "|")))
+	gram.WriteString(fmt.Sprintf("<location> = (%s)\n", strings.Join(mapKeys(conf.Dict.Location), "|")))
 	gram.WriteString(grammarFooter)
 
 	if err := gram.Close(); err != nil {
