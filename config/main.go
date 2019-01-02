@@ -90,10 +90,10 @@ func main() {
 	}
 
 	gram.WriteString(grammarHeader)
-	gram.WriteString(fmt.Sprintf("<greeting> = (%s)\n", strings.Join(conf.Dict.Greeting, "|")))
-	gram.WriteString(fmt.Sprintf("<action> = (%s)\n", strings.Join(mapKeys(conf.Dict.Action), "|")))
-	gram.WriteString(fmt.Sprintf("<target> = (%s)\n", strings.Join(mapKeys(conf.Dict.Target), "|")))
-	gram.WriteString(fmt.Sprintf("<location> = (%s)\n", strings.Join(mapKeys(conf.Dict.Location), "|")))
+	gram.WriteString(fmt.Sprintf("<greeting> = (%s);\n", strings.Join(conf.Dict.Greeting, "|")))
+	gram.WriteString(fmt.Sprintf("<action> = (%s);\n", strings.Join(mapKeys(conf.Dict.Action), "|")))
+	gram.WriteString(fmt.Sprintf("<target> = (%s);\n", strings.Join(mapKeys(conf.Dict.Target), "|")))
+	gram.WriteString(fmt.Sprintf("<location> = (%s);\n", strings.Join(mapKeys(conf.Dict.Location), "|")))
 	gram.WriteString(grammarFooter)
 
 	if err := gram.Close(); err != nil {
