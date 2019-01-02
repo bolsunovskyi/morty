@@ -13,11 +13,10 @@ dict:
     "подскажи": tell
   target:
     свет: lights
+    подсветку: lights
     лампа: lamp
     лампу: lamp
     кровать: bed
-    зеркало: mirror
-    зеркале: mirror
     погоду: weather
     погода: weather
     температуру: temperature
@@ -28,3 +27,5 @@ dict:
     зале: hall
     киеве: kyiv
     полтаве: poltava
+    зеркало: mirror
+    зеркале: mirror

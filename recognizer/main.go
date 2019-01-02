@@ -85,7 +85,7 @@ pocketsphinx_continuous -hmm ~/zero_ru_cont_8k_v3/zero_ru.cd_cont_4000 -jsgf ./d
 */
 
 func init() {
-	flag.Float64Var(&sampleRate, "sr", 48000, "sample rate")
+	flag.Float64Var(&sampleRate, "sr", 44100, "sample rate")
 	flag.StringVar(&hmm, "hmm", "", "directory containing acoustic model files")
 	flag.StringVar(&dict, "dict", "", "main pronunciation dictionary (lexicon) input file")
 	flag.StringVar(&lm, "lm", "", "word trigram language model input file")
