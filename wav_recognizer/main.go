@@ -2,8 +2,11 @@ package main
 
 import (
 	"flag"
+	"io"
 	"log"
+	"os"
 
+	"github.com/cryptix/wav"
 	"github.com/xlab/closer"
 	"github.com/xlab/pocketsphinx-go/sphinx"
 )
@@ -19,6 +22,7 @@ var (
 	logFile             string
 	nfft                int
 	assistantConfigPath string
+	wavPath             string
 )
 
 type Listener struct {
@@ -28,7 +32,7 @@ type Listener struct {
 }
 
 func init() {
-	flag.Float64Var(&sampleRate, "sr", 44100, "sample rate")
+	flag.Float64Var(&sampleRate, "sr", 16000, "sample rate")
 	flag.StringVar(&hmm, "hmm", "", "directory containing acoustic model files")
 	flag.StringVar(&dict, "dict", "", "main pronunciation dictionary (lexicon) input file")
 	flag.StringVar(&lm, "lm", "", "word trigram language model input file")
@@ -38,6 +42,7 @@ func init() {
 	flag.IntVar(&debugLevel, "dl", 0, "debug level")
 	flag.IntVar(&nfft, "nfft", 0, "nfft")
 	flag.StringVar(&assistantConfigPath, "ac", "../config/config.yaml", "assistant config path")
+	flag.StringVar(&wavPath, "wp", "../assets/kitchen.wav", "wav file path")
 	flag.Parse()
 
 	if hmm == "" || dict == "" || (lm == "" && jsgf == "") {
@@ -93,7 +98,55 @@ func main() {
 		closer.Fatalln("[ERR] Sphinx failed to start utterance")
 	}
 	log.Println("Ready..")
+	go l.readWav()
 	closer.Hold()
+}
+
+func (l *Listener) readWav() {
+	stat, err := os.Stat(wavPath)
+	if err != nil {
+		log.Fatalln(err)
+	}
+
+	fp, err := os.Open(wavPath)
+	if err != nil {
+		log.Fatalln(err)
+	}
+
+	reader, err := wav.NewReader(fp, stat.Size())
+	if err != nil {
+		log.Fatalln(err)
+	}
+
+	var input []int16
+	for {
+		rawSample, err := reader.ReadSample()
+		if err == io.EOF {
+			break
+		} else if err != nil {
+			log.Fatalln(err)
+		}
+		input = append(input, int16(rawSample))
+	}
+
+	_, ok := l.dec.ProcessRaw(input, true, false)
+	if !ok {
+		log.Println("status abort")
+	}
+	if l.dec.IsInSpeech() {
+		l.inSpeech = true
+		if !l.uttStarted {
+			l.uttStarted = true
+			log.Println("Listening..")
+		}
+	} else if l.uttStarted {
+		l.dec.EndUtt()
+		l.uttStarted = false
+		l.report() // report results
+		if !l.dec.StartUtt() {
+			closer.Fatalln("[ERR] Sphinx failed to start utterance")
+		}
+	}
 }
 
 func (l *Listener) report() {

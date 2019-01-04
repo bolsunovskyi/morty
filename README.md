@@ -4,3 +4,7 @@ echo "включи свет на кухне" | text2wave -eval '(voice_msu_ru_ns
 
 ### Record wav voice to stdout
 rec -c 1 -t wav /dev/stdout rate 16k silence 1 0.1 3% 1 3.0 3% > /tmp/rec.wav
+
+
+### WAV topics
+- https://github.com/xlab/pocketsphinx-go/issues/3
