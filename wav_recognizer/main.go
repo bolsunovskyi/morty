@@ -129,24 +129,26 @@ func (l *Listener) readWav() {
 		input = append(input, int16(rawSample))
 	}
 
-	_, ok := l.dec.ProcessRaw(input, true, false)
+	_, ok := l.dec.ProcessRaw(input, false, false)
 	if !ok {
 		log.Println("status abort")
 	}
-	if l.dec.IsInSpeech() {
-		l.inSpeech = true
-		if !l.uttStarted {
-			l.uttStarted = true
-			log.Println("Listening..")
-		}
-	} else if l.uttStarted {
-		l.dec.EndUtt()
-		l.uttStarted = false
-		l.report() // report results
-		if !l.dec.StartUtt() {
-			closer.Fatalln("[ERR] Sphinx failed to start utterance")
-		}
-	}
+	l.report()
+	/*
+		if l.dec.IsInSpeech() {
+			l.inSpeech = true
+			if !l.uttStarted {
+				l.uttStarted = true
+				log.Println("Listening..")
+			}
+		} else if l.uttStarted {
+			l.dec.EndUtt()
+			l.uttStarted = false
+			l.report() // report results
+			if !l.dec.StartUtt() {
+				closer.Fatalln("[ERR] Sphinx failed to start utterance")
+			}
+		}*/
 }
 
 func (l *Listener) report() {
