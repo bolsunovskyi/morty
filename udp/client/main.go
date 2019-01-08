@@ -79,7 +79,7 @@ func main() {
 	go reconnect()
 
 	for {
-		rec := exec.Command("rec", "-c", "1", "-t", "wav", "/dev/stdout", "rate", "16k", "silence", "1", "0.1", "3%", "1", "3.0", "3%")
+		rec := exec.Command("rec", "-c", "1", "-t", "wav", "/dev/stdout", "rate", "16k", "silence", "1", "0.1", "3%", "1", "0.7", "3%")
 		rec.Stdout = &stdOutListener
 		if err := rec.Run(); err != nil {
 			log.Println(err)
